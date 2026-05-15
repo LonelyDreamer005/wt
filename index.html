@@ -1,0 +1,5799 @@
+Question 1
+Design a Multi-Step Student Registration System.
+Step 1: Personal details (name, email, phone).
+Step 2: Academic details (department, year, GPA).
+Step 3: Course preferences.
+Requirements:
+• Use HTML and CSS to create a step-based form layout.
+• Use JavaScript to validate each step before moving to the next.
+• Store the data temporarily using JavaScript objects.
+• Submit the final data to a Servlet and display all submitted details using JSP.
+Index.html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student Registration</title>
+
+    <style>
+        body{
+            font-family: Arial;
+            background:#f2f2f2;
+        }
+
+        .container{
+            width:400px;
+            margin:auto;
+            background:white;
+            padding:20px;
+            margin-top:50px;
+            border-radius:10px;
+            box-shadow:0 0 10px gray;
+        }
+
+        .step{
+            display:none;
+        }
+
+        .active{
+            display:block;
+        }
+
+        input{
+            width:100%;
+            padding:10px;
+            margin:10px 0;
+        }
+
+        button{
+            padding:10px 15px;
+            margin-top:10px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+<form action="RegisterServlet" method="post" onsubmit="return submitForm()">
+
+    <!-- STEP 1 -->
+    <div class="step active" id="step1">
+
+        <h2>Personal Details</h2>
+
+        <input type="text" id="name" name="name" placeholder="Enter Name">
+
+        <input type="email" id="email" name="email" placeholder="Enter Email">
+
+        <input type="text" id="phone" name="phone" placeholder="Enter Phone">
+
+        <button type="button" onclick="nextStep(1)">
+            Next
+        </button>
+
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="step" id="step2">
+
+        <h2>Academic Details</h2>
+
+        <input type="text" id="dept" name="dept"
+               placeholder="Department">
+
+        <input type="number" id="year" name="year"
+               placeholder="Year">
+
+        <input type="text" id="gpa" name="gpa"
+               placeholder="GPA">
+
+        <button type="button" onclick="prevStep(2)">
+            Previous
+        </button>
+
+        <button type="button" onclick="nextStep(2)">
+            Next
+        </button>
+
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="step" id="step3">
+
+        <h2>Course Preference</h2>
+
+        <input type="text" id="course"
+               name="course"
+               placeholder="Preferred Course">
+
+        <button type="button" onclick="prevStep(3)">
+            Previous
+        </button>
+
+        <button type="submit">
+            Submit
+        </button>
+
+    </div>
+
+</form>
+</div>
+<script>
+    // JavaScript Object
+    let student = {};
+    function nextStep(step){
+        // Validation for Step 1
+        if(step == 1){
+            if(name.value == "" ||
+               email.value == "" ||
+               phone.value == ""){
+                alert("Please fill all personal details");
+                return;
+            }
+
+            student.name = name.value;
+            student.email = email.value;
+            student.phone = phone.value;
+        }
+        // Validation for Step 2
+        if(step == 2){
+
+            if(dept.value == "" ||
+               year.value == "" ||
+               gpa.value == ""){
+               alert("Please fill all academic details");
+                return;
+            }
+            student.department = dept.value;
+            student.year = year.value;
+            student.gpa = gpa.value;
+        }
+        document.getElementById("step"+step)
+                .classList.remove("active");
+
+        document.getElementById("step"+(step+1))
+                .classList.add("active");
+    }
+
+    function prevStep(step){
+
+        document.getElementById("step"+step)
+                .classList.remove("active");
+
+        document.getElementById("step"+(step-1))
+                .classList.add("active");
+    }
+    function submitForm(){
+        if(course.value == ""){
+            alert("Enter course preference");
+            return false;
+        }
+        student.course = course.value;
+        console.log(student);
+        return true;
+    }
+
+</script>
+
+</body>
+</html>
+
+
+
+
+
+Result.jsp
+<html>
+<head>
+    <title>Registration Details</title>
+</head>
+<body>
+<h2>Student Registration Successful</h2>
+<hr>
+<h3>Personal Details</h3>
+Name: ${name} <br><br>
+Email: ${email} <br><br>
+Phone: ${phone} <br><br>
+<hr>
+<h3>Academic Details</h3>
+Department: ${dept} <br><br>
+Year: ${year} <br><br>
+GPA: ${gpa} <br><br>
+<hr>
+<h3>Course Preference</h3>
+Preferred Course: ${course}
+</body>
+</html>
+Web.xml
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+         version="3.1">
+
+    <servlet>
+        <servlet-name>RegisterServlet</servlet-name>
+
+        <servlet-class>
+            RegisterServlet
+        </servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>RegisterServlet</servlet-name>
+
+        <url-pattern>/RegisterServlet</url-pattern>
+    </servlet-mapping>
+
+</web-app>
+
+
+
+
+
+RegisterServlet.java
+import java.io.*;
+import jakarta.servlet.*;
+import jakarta.servlet.http.*;
+
+public class RegisterServlet extends HttpServlet {
+
+    protected void doPost(HttpServletRequest req,
+                          HttpServletResponse res)
+            throws ServletException, IOException {
+
+        String name = req.getParameter("name");
+        String email = req.getParameter("email");
+        String phone = req.getParameter("phone");
+
+        String dept = req.getParameter("dept");
+        String year = req.getParameter("year");
+        String gpa = req.getParameter("gpa");
+
+        String course = req.getParameter("course");
+
+        req.setAttribute("name", name);
+        req.setAttribute("email", email);
+        req.setAttribute("phone", phone);
+
+        req.setAttribute("dept", dept);
+        req.setAttribute("year", year);
+        req.setAttribute("gpa", gpa);
+
+        req.setAttribute("course", course);
+
+        RequestDispatcher rd =
+                req.getRequestDispatcher("result.jsp");
+
+        rd.forward(req, res);
+    }
+}
+
+
+
+
+
+
+Question 2
+Create an Online Food Ordering Interface.
+Features:
+• Display a menu of 6 food items with price and quantity input.
+• Use JavaScript to calculate individual item totals and grand total dynamically.
+• Add a delivery charge of ₹50 if total < ₹500.
+• Submit the order to a Servlet and display an order summary page using JSP
+Index.html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Online Food Ordering</title>
+
+    <style>
+
+        body{
+            font-family: Arial;
+            background:#f2f2f2;
+        }
+
+        .container{
+            width:700px;
+            margin:auto;
+            background:white;
+            padding:20px;
+            margin-top:40px;
+            border-radius:10px;
+            box-shadow:0 0 10px gray;
+        }
+
+        table{
+            width:100%;
+            border-collapse:collapse;
+        }
+
+        table, th, td{
+            border:1px solid black;
+            padding:10px;
+            text-align:center;
+        }
+
+        input{
+            width:60px;
+            padding:5px;
+        }
+
+        h2{
+            text-align:center;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Online Food Ordering System</h2>
+
+<form action="OrderServlet" method="post">
+
+<table>
+
+<tr>
+    <th>Food Item</th>
+    <th>Price</th>
+    <th>Quantity</th>
+    <th>Total</th>
+</tr>
+
+<tr>
+    <td>Pizza</td>
+    <td>200</td>
+
+    <td>
+        <input type="number"
+               id="q1"
+               name="pizzaQty"
+               value="0"
+               min="0"
+               onkeyup="calculate()"
+               onchange="calculate()">
+    </td>
+
+    <td id="t1">0</td>
+</tr>
+
+<tr>
+    <td>Burger</td>
+    <td>120</td>
+
+    <td>
+        <input type="number"
+               id="q2"
+               name="burgerQty"
+               value="0"
+               min="0"
+               onkeyup="calculate()"
+               onchange="calculate()">
+    </td>
+
+    <td id="t2">0</td>
+</tr>
+
+<tr>
+    <td>Pasta</td>
+    <td>180</td>
+
+    <td>
+        <input type="number"
+               id="q3"
+               name="pastaQty"
+               value="0"
+               min="0"
+               onkeyup="calculate()"
+               onchange="calculate()">
+    </td>
+
+    <td id="t3">0</td>
+</tr>
+
+<tr>
+    <td>Sandwich</td>
+    <td>90</td>
+
+    <td>
+        <input type="number"
+               id="q4"
+               name="sandwichQty"
+               value="0"
+               min="0"
+               onkeyup="calculate()"
+               onchange="calculate()">
+    </td>
+
+    <td id="t4">0</td>
+</tr>
+
+<tr>
+    <td>Noodles</td>
+    <td>150</td>
+
+    <td>
+        <input type="number"
+               id="q5"
+               name="noodlesQty"
+               value="0"
+               min="0"
+               onkeyup="calculate()"
+               onchange="calculate()">
+    </td>
+
+    <td id="t5">0</td>
+</tr>
+
+<tr>
+    <td>Tea</td>
+    <td>40</td>
+
+    <td>
+        <input type="number"
+               id="q6"
+               name="teaQty"
+               value="0"
+               min="0"
+               onkeyup="calculate()"
+               onchange="calculate()">
+    </td>
+
+    <td id="t6">0</td>
+</tr>
+
+</table>
+
+<br>
+
+<h3>Food Total : ₹ <span id="foodTotal">0</span></h3>
+
+<h3>Delivery Charge : ₹ <span id="delivery">0</span></h3>
+
+<h3>Grand Total : ₹ <span id="grandTotal">0</span></h3>
+
+<input type="hidden" name="grandTotalInput" id="grandTotalInput">
+
+<center>
+<button type="submit">
+    Place Order
+</button>
+</center>
+
+</form>
+
+</div>
+
+<script>
+
+function calculate(){
+
+    let prices = [200,120,180,90,150,40];
+
+    let quantities = [
+        parseInt(document.getElementById("q1").value) || 0,
+        parseInt(document.getElementById("q2").value) || 0,
+        parseInt(document.getElementById("q3").value) || 0,
+        parseInt(document.getElementById("q4").value) || 0,
+        parseInt(document.getElementById("q5").value) || 0,
+        parseInt(document.getElementById("q6").value) || 0
+    ];
+
+    let total = 0;
+
+    for(let i=0;i<6;i++){
+
+        let itemTotal = prices[i] * quantities[i];
+
+        document.getElementById("t"+(i+1)).innerHTML =
+                itemTotal;
+
+        total += itemTotal;
+    }
+
+    let delivery = total < 500 && total > 0 ? 50 : 0;
+
+    let grand = total + delivery;
+
+    document.getElementById("foodTotal").innerHTML = total;
+
+    document.getElementById("delivery").innerHTML = delivery;
+
+    document.getElementById("grandTotal").innerHTML = grand;
+
+    document.getElementById("grandTotalInput").value =
+            grand;
+}
+
+</script>
+
+</body>
+</html>
+
+
+OrderServlet.java
+import java.io.*;
+import jakarta.servlet.*;
+import jakarta.servlet.http.*;
+
+public class OrderServlet extends HttpServlet {
+
+    protected void doPost(HttpServletRequest req,
+                          HttpServletResponse res)
+            throws ServletException, IOException {
+
+        int pizza = Integer.parseInt(req.getParameter("pizzaQty"));
+        int burger = Integer.parseInt(req.getParameter("burgerQty"));
+        int pasta = Integer.parseInt(req.getParameter("pastaQty"));
+        int sandwich = Integer.parseInt(req.getParameter("sandwichQty"));
+        int noodles = Integer.parseInt(req.getParameter("noodlesQty"));
+        int tea = Integer.parseInt(req.getParameter("teaQty"));
+
+        int grandTotal =
+                Integer.parseInt(req.getParameter("grandTotalInput"));
+
+        req.setAttribute("pizza", pizza);
+        req.setAttribute("burger", burger);
+        req.setAttribute("pasta", pasta);
+        req.setAttribute("sandwich", sandwich);
+        req.setAttribute("noodles", noodles);
+        req.setAttribute("tea", tea);
+
+        req.setAttribute("grand", grandTotal);
+
+        RequestDispatcher rd =
+                req.getRequestDispatcher("summary.jsp");
+
+        rd.forward(req,res);
+    }
+}
+
+
+
+Summary.jsp
+<html>
+
+<head>
+    <title>Order Summary</title>
+</head>
+
+<body>
+
+<h2>Order Summary</h2>
+
+<hr>
+
+<h3>Items Ordered</h3>
+
+Pizza Quantity :
+${pizza}
+<br><br>
+
+Burger Quantity :
+${burger}
+<br><br>
+
+Pasta Quantity :
+${pasta}
+<br><br>
+
+Sandwich Quantity :
+${sandwich}
+<br><br>
+
+Noodles Quantity :
+${noodles}
+<br><br>
+
+Tea Quantity :
+${tea}
+<br><br>
+
+<hr>
+
+<h2>
+Grand Total :
+₹ ${grand}
+</h2>
+
+</body>
+</html>
+
+Web.xml
+<web-app xmlns="https://jakarta.ee/xml/ns/jakartaee"
+         version="5.0">
+
+    <servlet>
+
+        <servlet-name>OrderServlet</servlet-name>
+
+        <servlet-class>
+            OrderServlet
+        </servlet-class>
+
+    </servlet>
+
+    <servlet-mapping>
+
+        <servlet-name>OrderServlet</servlet-name>
+
+        <url-pattern>
+            /OrderServlet
+        </url-pattern>
+
+    </servlet-mapping>
+
+</web-app>
+
+Question 3
+Create an XML file containing details of at least eight university courses with fields:
+• course code
+• title
+• credits
+• instructor
+• semester
+Using JavaScript and fetch/XMLHttpRequest:
+• load the XML data
+• display it in a table
+• allow filtering by semester
+• allow searching by course title
+
+
+Index.html
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>University Courses</title>
+
+    <style>
+
+        body{
+            font-family: Arial;
+            background:#f2f2f2;
+        }
+
+        .container{
+            width:900px;
+            margin:auto;
+            background:white;
+            padding:20px;
+            margin-top:30px;
+            border-radius:10px;
+        }
+
+        table{
+            width:100%;
+            border-collapse:collapse;
+            margin-top:20px;
+        }
+
+        table, th, td{
+            border:1px solid black;
+            padding:10px;
+            text-align:center;
+        }
+
+        input, select{
+            padding:8px;
+            margin-right:10px;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h2 align="center">
+    University Courses
+</h2>
+
+<input type="text"
+       id="searchBox"
+       placeholder="Search by Course Title"
+       onkeyup="loadCourses()">
+
+<select id="semesterFilter"
+        onchange="loadCourses()">
+
+    <option value="all">All Semesters</option>
+
+    <option value="1">Semester 1</option>
+    <option value="2">Semester 2</option>
+    <option value="3">Semester 3</option>
+    <option value="4">Semester 4</option>
+    <option value="5">Semester 5</option>
+    <option value="6">Semester 6</option>
+
+</select>
+
+<table id="courseTable">
+
+<tr>
+    <th>Course Code</th>
+    <th>Title</th>
+    <th>Credits</th>
+    <th>Instructor</th>
+    <th>Semester</th>
+</tr>
+
+</table>
+
+</div>
+
+<script>
+
+function loadCourses(){
+
+    let xhttp = new XMLHttpRequest();
+
+    xhttp.onreadystatechange = function(){
+
+        if(this.readyState == 4 && this.status == 200){
+
+            displayCourses(this);
+        }
+    };
+
+    xhttp.open("GET", "courses.xml", true);
+
+    xhttp.send();
+}
+
+function displayCourses(xml){
+
+    let xmlDoc = xml.responseXML;
+
+    let courses =
+        xmlDoc.getElementsByTagName("course");
+
+    let table =
+        `<tr>
+            <th>Course Code</th>
+            <th>Title</th>
+            <th>Credits</th>
+            <th>Instructor</th>
+            <th>Semester</th>
+        </tr>`;
+
+    let search =
+        document.getElementById("searchBox")
+        .value.toLowerCase();
+
+    let semester =
+        document.getElementById("semesterFilter")
+        .value;
+
+    for(let i=0;i<courses.length;i++){
+
+        let code =
+            courses[i]
+            .getElementsByTagName("code")[0]
+            .childNodes[0].nodeValue;
+
+        let title =
+            courses[i]
+            .getElementsByTagName("title")[0]
+            .childNodes[0].nodeValue;
+
+        let credits =
+            courses[i]
+            .getElementsByTagName("credits")[0]
+            .childNodes[0].nodeValue;
+
+        let instructor =
+            courses[i]
+            .getElementsByTagName("instructor")[0]
+            .childNodes[0].nodeValue;
+
+        let sem =
+            courses[i]
+            .getElementsByTagName("semester")[0]
+            .childNodes[0].nodeValue;
+
+        let titleMatch =
+            title.toLowerCase().includes(search);
+
+        let semesterMatch =
+            semester == "all" || sem == semester;
+
+        if(titleMatch && semesterMatch){
+
+            table +=
+            `<tr>
+
+                <td>${code}</td>
+
+                <td>${title}</td>
+
+                <td>${credits}</td>
+
+                <td>${instructor}</td>
+
+                <td>${sem}</td>
+
+            </tr>`;
+        }
+    }
+
+    document.getElementById("courseTable")
+            .innerHTML = table;
+}
+
+loadCourses();
+</script>
+
+</body>
+</html>
+
+Courses.xml
+<?xml version="1.0"?>
+
+<courses>
+
+    <course>
+        <code>CSE101</code>
+        <title>Java Programming</title>
+        <credits>4</credits>
+        <instructor>Dr. Ravi</instructor>
+        <semester>1</semester>
+    </course>
+
+    <course>
+        <code>CSE102</code>
+        <title>Data Structures</title>
+        <credits>4</credits>
+        <instructor>Dr. Kumar</instructor>
+        <semester>2</semester>
+    </course>
+
+    <course>
+        <code>CSE201</code>
+        <title>Database Systems</title>
+        <credits>3</credits>
+        <instructor>Dr. Priya</instructor>
+        <semester>3</semester>
+    </course>
+
+    <course>
+        <code>CSE202</code>
+        <title>Operating Systems</title>
+        <credits>4</credits>
+        <instructor>Dr. Arun</instructor>
+        <semester>4</semester>
+    </course>
+
+    <course>
+        <code>CSE301</code>
+        <title>Computer Networks</title>
+        <credits>3</credits>
+        <instructor>Dr. Suresh</instructor>
+        <semester>5</semester>
+    </course>
+
+    <course>
+        <code>CSE302</code>
+        <title>Web Technology</title>
+        <credits>3</credits>
+        <instructor>Dr. Meena</instructor>
+        <semester>5</semester>
+    </course>
+
+    <course>
+        <code>CSE401</code>
+        <title>Artificial Intelligence</title>
+        <credits>4</credits>
+        <instructor>Dr. Karthik</instructor>
+        <semester>6</semester>
+    </course>
+
+    <course>
+        <code>CSE402</code>
+        <title>Machine Learning</title>
+        <credits>4</credits>
+        <instructor>Dr. Divya</instructor>
+        <semester>6</semester>
+    </course>
+
+</courses>
+
+
+Question 4
+Design a Secure Login Page.
+Requirements:
+• HTML/CSS centered login panel
+• username and password inputs
+• show/hide password toggle using JavaScript
+• JavaScript validation rules:
+o username ≥ 6 characters
+o password must contain uppercase, lowercase, number
+Submit the form to a Servlet which checks credentials (dummy values are fine) and creates a session.
+Display a JSP dashboard page showing the logged-in username.
+
+Index.html
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Secure Login</title>
+
+    <style>
+
+        body{
+            margin:0;
+            padding:0;
+            font-family:Arial;
+            background:#f2f2f2;
+
+            display:flex;
+            justify-content:center;
+            align-items:center;
+
+            height:100vh;
+        }
+
+        .login-box{
+
+            width:350px;
+            background:white;
+
+            padding:30px;
+
+            border-radius:10px;
+
+            box-shadow:0 0 10px gray;
+        }
+
+        h2{
+            text-align:center;
+        }
+
+        input{
+
+            width:100%;
+
+            padding:10px;
+
+            margin-top:10px;
+
+            box-sizing:border-box;
+        }
+
+        button{
+
+            width:100%;
+
+            padding:10px;
+
+            margin-top:15px;
+
+            background:blue;
+
+            color:white;
+
+            border:none;
+
+            cursor:pointer;
+        }
+
+        .error{
+            color:red;
+            font-size:14px;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="login-box">
+
+<h2>Login Page</h2>
+
+<form action="LoginServlet"
+      method="post"
+      onsubmit="return validateForm()">
+
+<input type="text"
+       id="username"
+       name="username"
+       placeholder="Enter Username">
+
+<div id="userError" class="error"></div>
+
+<input type="password"
+       id="password"
+       name="password"
+       placeholder="Enter Password">
+
+<input type="checkbox"
+       onclick="togglePassword()">
+
+Show Password
+
+<div id="passError" class="error"></div>
+
+<button type="submit">
+    Login
+</button>
+
+</form>
+
+</div>
+
+<script>
+
+function togglePassword(){
+
+    let pass =
+        document.getElementById("password");
+
+    if(pass.type == "password"){
+
+        pass.type = "text";
+    }
+    else{
+
+        pass.type = "password";
+    }
+}
+
+function validateForm(){
+
+    let username =
+        document.getElementById("username").value;
+
+    let password =
+        document.getElementById("password").value;
+
+    let userError =
+        document.getElementById("userError");
+
+    let passError =
+        document.getElementById("passError");
+
+    userError.innerHTML = "";
+    passError.innerHTML = "";
+
+    // Username validation
+    if(username.length < 6){
+
+        userError.innerHTML =
+            "Username must contain minimum 6 characters";
+
+        return false;
+    }
+
+    // Password validation
+    let pattern =
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).+$/;
+
+    if(!pattern.test(password)){
+
+        passError.innerHTML =
+            "Password must contain uppercase, lowercase and number";
+
+        return false;
+    }
+
+    return true;
+}
+
+</script>
+
+</body>
+</html>
+
+
+LoginServlet.java
+
+import java.io.*;
+import jakarta.servlet.*;
+import jakarta.servlet.http.*;
+
+public class LoginServlet extends HttpServlet {
+
+    protected void doPost(HttpServletRequest req,
+                          HttpServletResponse res)
+            throws ServletException, IOException {
+
+        String username =
+                req.getParameter("username");
+
+        String password =
+                req.getParameter("password");
+
+        // Dummy credentials
+        if(username.equals("admin123")
+                && password.equals("Admin123")){
+
+            // Create session
+            HttpSession session =
+                    req.getSession();
+
+            session.setAttribute(
+                    "user",
+                    username);
+
+            // Redirect to dashboard
+            res.sendRedirect("dashboard.jsp");
+        }
+        else{
+
+            res.setContentType("text/html");
+
+            PrintWriter out =
+                    res.getWriter();
+
+            out.println("<h2>Invalid Credentials</h2>");
+        }
+    }
+}
+
+Dashboard.jsp
+<%@ page session="true" %>
+
+<html>
+
+<head>
+    <title>Dashboard</title>
+</head>
+
+<body>
+
+<h2>
+    Welcome
+    ${sessionScope.user}
+</h2>
+
+<hr>
+
+<h3>
+    Login Successful
+</h3>
+
+</body>
+</html>
+
+Web.xml
+<web-app xmlns="https://jakarta.ee/xml/ns/jakartaee"
+         version="5.0">
+
+    <servlet>
+
+        <servlet-name>
+            LoginServlet
+        </servlet-name>
+
+        <servlet-class>
+            LoginServlet
+        </servlet-class>
+
+    </servlet>
+
+    <servlet-mapping>
+
+        <servlet-name>
+            LoginServlet
+        </servlet-name>
+
+        <url-pattern>
+            /LoginServlet
+        </url-pattern>
+
+    </servlet-mapping>
+
+</web-app>
+
+Question 5
+Create an XML file storing employee information:
+• id
+• name
+• department
+• salary
+• experience (years)
+Using JavaScript:
+• display employees in a table
+• provide buttons to:
+o sort by salary
+o filter employees with experience > 5 years.
+Employees.xml
+<?xml version="1.0"?>
+
+<employees>
+
+    <employee>
+        <id>101</id>
+        <name>John</name>
+        <department>IT</department>
+        <salary>55000</salary>
+        <experience>6</experience>
+    </employee>
+
+    <employee>
+        <id>102</id>
+        <name>Priya</name>
+        <department>HR</department>
+        <salary>42000</salary>
+        <experience>3</experience>
+    </employee>
+
+    <employee>
+        <id>103</id>
+        <name>Arun</name>
+        <department>Finance</department>
+        <salary>60000</salary>
+        <experience>8</experience>
+    </employee>
+
+    <employee>
+        <id>104</id>
+        <name>Divya</name>
+        <department>IT</department>
+        <salary>48000</salary>
+        <experience>4</experience>
+    </employee>
+
+    <employee>
+        <id>105</id>
+        <name>Karthik</name>
+        <department>Marketing</department>
+        <salary>70000</salary>
+        <experience>10</experience>
+    </employee>
+
+    <employee>
+        <id>106</id>
+        <name>Meena</name>
+        <department>Sales</department>
+        <salary>39000</salary>
+        <experience>2</experience>
+    </employee>
+
+</employees>
+
+
+Index.html
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Employee Information</title>
+
+    <style>
+
+        body{
+            font-family: Arial;
+            background:#f2f2f2;
+        }
+
+        .container{
+            width:900px;
+            margin:auto;
+            background:white;
+            padding:20px;
+            margin-top:30px;
+            border-radius:10px;
+            box-shadow:0 0 10px gray;
+        }
+
+        table{
+            width:100%;
+            border-collapse:collapse;
+            margin-top:20px;
+        }
+
+        table, th, td{
+            border:1px solid black;
+            padding:10px;
+            text-align:center;
+        }
+
+        button{
+            padding:10px 15px;
+            margin-right:10px;
+            cursor:pointer;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h2 align="center">
+    Employee Information System
+</h2>
+
+<button onclick="employeeFunction('sort')">
+    Sort by Salary
+</button>
+
+<button onclick="employeeFunction('filter')">
+    Experience > 5 Years
+</button>
+
+<button onclick="employeeFunction('all')">
+    Show All Employees
+</button>
+
+<table id="employeeTable">
+
+<tr>
+    <th>ID</th>
+    <th>Name</th>
+    <th>Department</th>
+    <th>Salary</th>
+    <th>Experience</th>
+</tr>
+
+</table>
+
+</div>
+
+<script>
+
+let employeeData = [];
+
+function employeeFunction(action){
+
+    let xhttp = new XMLHttpRequest();
+
+    xhttp.onreadystatechange = function(){
+
+        if(this.readyState == 4 && this.status == 200){
+
+            let xmlDoc = this.responseXML;
+
+            let employees =
+                xmlDoc.getElementsByTagName("employee");
+
+            employeeData = [];
+
+            for(let i=0;i<employees.length;i++){
+
+                employeeData.push({
+
+                    id:
+                    employees[i]
+                    .getElementsByTagName("id")[0]
+                    .childNodes[0].nodeValue,
+
+                    name:
+                    employees[i]
+                    .getElementsByTagName("name")[0]
+                    .childNodes[0].nodeValue,
+
+                    department:
+                    employees[i]
+                    .getElementsByTagName("department")[0]
+                    .childNodes[0].nodeValue,
+
+                    salary:
+                    parseInt(
+                    employees[i]
+                    .getElementsByTagName("salary")[0]
+                    .childNodes[0].nodeValue),
+
+                    experience:
+                    parseInt(
+                    employees[i]
+                    .getElementsByTagName("experience")[0]
+                    .childNodes[0].nodeValue)
+                });
+            }
+
+            // SORT
+            if(action == "sort"){
+
+                employeeData.sort(
+                    (a,b) => a.salary - b.salary
+                );
+            }
+
+            // FILTER
+            if(action == "filter"){
+
+                employeeData =
+                    employeeData.filter(
+                        emp => emp.experience > 5
+                    );
+            }
+
+            // TABLE DISPLAY
+            let table =
+            `<tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Department</th>
+                <th>Salary</th>
+                <th>Experience</th>
+            </tr>`;
+
+            for(let i=0;i<employeeData.length;i++){
+
+                table +=
+                `<tr>
+
+                    <td>${employeeData[i].id}</td>
+
+                    <td>${employeeData[i].name}</td>
+
+                    <td>${employeeData[i].department}</td>
+
+                    <td>${employeeData[i].salary}</td>
+
+                    <td>${employeeData[i].experience}</td>
+
+                </tr>`;
+            }
+
+            document.getElementById("employeeTable")
+                    .innerHTML = table;
+        }
+    };
+
+    xhttp.open("GET", "employees.xml", true);
+
+    xhttp.send();
+}
+
+// Initial Load
+employeeFunction('all');
+
+</script>
+
+</body>
+</html>
+
+
+Question 6
+Create an XML dataset of movie records with fields:
+• title
+• genre
+• release year
+• rating
+• language
+Using JavaScript:
+• display the movies in a table
+• allow filtering by genre
+• highlight movies with rating ≥ 8.
+Movies.xml
+<?xml version="1.0"?>
+
+<movies>
+
+    <movie>
+        <title>Inception</title>
+        <genre>Sci-Fi</genre>
+        <year>2010</year>
+        <rating>8.8</rating>
+        <language>English</language>
+    </movie>
+
+    <movie>
+        <title>Interstellar</title>
+        <genre>Sci-Fi</genre>
+        <year>2014</year>
+        <rating>8.7</rating>
+        <language>English</language>
+    </movie>
+
+    <movie>
+        <title>3 Idiots</title>
+        <genre>Comedy</genre>
+        <year>2009</year>
+        <rating>8.4</rating>
+        <language>Hindi</language>
+    </movie>
+
+    <movie>
+        <title>KGF</title>
+        <genre>Action</genre>
+        <year>2018</year>
+        <rating>8.3</rating>
+        <language>Kannada</language>
+    </movie>
+
+    <movie>
+        <title>Avatar</title>
+        <genre>Fantasy</genre>
+        <year>2009</year>
+        <rating>7.8</rating>
+        <language>English</language>
+    </movie>
+
+    <movie>
+        <title>Jailer</title>
+        <genre>Action</genre>
+        <year>2023</year>
+        <rating>7.5</rating>
+        <language>Tamil</language>
+    </movie>
+
+</movies>
+
+Index.html
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Movie Records</title>
+
+    <style>
+
+        body{
+            font-family: Arial;
+            background:#f2f2f2;
+        }
+
+        .container{
+            width:900px;
+            margin:auto;
+            background:white;
+            padding:20px;
+            margin-top:30px;
+            border-radius:10px;
+            box-shadow:0 0 10px gray;
+        }
+
+        table{
+            width:100%;
+            border-collapse:collapse;
+            margin-top:20px;
+        }
+
+        table, th, td{
+            border:1px solid black;
+            padding:10px;
+            text-align:center;
+        }
+
+        select{
+            padding:10px;
+        }
+
+        .highlight{
+            background:yellow;
+            font-weight:bold;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h2 align="center">
+    Movie Records
+</h2>
+
+<select onchange="movieFunction()" id="genre">
+
+    <option value="All">
+        All Genres
+    </option>
+
+    <option value="Sci-Fi">
+        Sci-Fi
+    </option>
+
+    <option value="Comedy">
+        Comedy
+    </option>
+
+    <option value="Action">
+        Action
+    </option>
+
+    <option value="Fantasy">
+        Fantasy
+    </option>
+
+</select>
+
+<table id="movieTable">
+
+<tr>
+    <th>Title</th>
+    <th>Genre</th>
+    <th>Release Year</th>
+    <th>Rating</th>
+    <th>Language</th>
+</tr>
+
+</table>
+
+</div>
+
+<script>
+
+function movieFunction(){
+
+    let xhttp = new XMLHttpRequest();
+
+    xhttp.onreadystatechange = function(){
+
+        if(this.readyState == 4 &&
+           this.status == 200){
+
+            let xmlDoc = this.responseXML;
+
+            let movies =
+                xmlDoc.getElementsByTagName("movie");
+
+            let selectedGenre =
+                document.getElementById("genre").value;
+
+            let table =
+            `<tr>
+                <th>Title</th>
+                <th>Genre</th>
+                <th>Release Year</th>
+                <th>Rating</th>
+                <th>Language</th>
+            </tr>`;
+
+            for(let i=0;i<movies.length;i++){
+
+                let title =
+                    movies[i]
+                    .getElementsByTagName("title")[0]
+                    .childNodes[0].nodeValue;
+
+                let genre =
+                    movies[i]
+                    .getElementsByTagName("genre")[0]
+                    .childNodes[0].nodeValue;
+
+                let year =
+                    movies[i]
+                    .getElementsByTagName("year")[0]
+                    .childNodes[0].nodeValue;
+
+                let rating =
+                    movies[i]
+                    .getElementsByTagName("rating")[0]
+                    .childNodes[0].nodeValue;
+
+                let language =
+                    movies[i]
+                    .getElementsByTagName("language")[0]
+                    .childNodes[0].nodeValue;
+
+                if(selectedGenre == "All"
+                    || genre == selectedGenre){
+
+                    let rowClass =
+                        rating >= 8
+                        ? "highlight"
+                        : "";
+
+                    table +=
+                    `<tr class="${rowClass}">
+
+                        <td>${title}</td>
+
+                        <td>${genre}</td>
+
+                        <td>${year}</td>
+
+                        <td>${rating}</td>
+
+                        <td>${language}</td>
+
+                    </tr>`;
+                }
+            }
+
+            document.getElementById("movieTable")
+                    .innerHTML = table;
+        }
+    };
+
+    xhttp.open("GET", "movies.xml", true);
+
+    xhttp.send();
+}
+
+// Initial Load
+movieFunction();
+</script>
+</body>
+</html>
+
+Question 7
+Design a University Admission Eligibility System.
+Input fields:
+• name
+• marks in Physics, Chemistry, Mathematics
+• entrance exam score
+JavaScript should:
+• validate marks between 0–100
+• compute total and percentage dynamically
+• show eligibility preview before submission.
+Submit to a Servlet which determines admission eligibility based on:
+• percentage ≥ 70 AND entrance score ≥ 60.
+Display results in a formatted JSP page.
+
+Index.html
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>University Admission</title>
+
+    <style>
+
+        body{
+            font-family: Arial;
+            background:#f2f2f2;
+        }
+
+        .container{
+            width:500px;
+            margin:auto;
+            background:white;
+            padding:20px;
+            margin-top:30px;
+            border-radius:10px;
+            box-shadow:0 0 10px gray;
+        }
+
+        input{
+            width:100%;
+            padding:10px;
+            margin-top:10px;
+            box-sizing:border-box;
+        }
+
+        button{
+            width:100%;
+            padding:10px;
+            margin-top:15px;
+        }
+
+        h2,h3{
+            text-align:center;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>
+    University Admission System
+</h2>
+
+<form action="AdmissionServlet"
+      method="post"
+      onsubmit="return validateForm()">
+
+<input type="text"
+       name="name"
+       id="name"
+       placeholder="Enter Name">
+
+<input type="number"
+       name="physics"
+       id="physics"
+       placeholder="Physics Marks"
+       onkeyup="calculate()">
+
+<input type="number"
+       name="chemistry"
+       id="chemistry"
+       placeholder="Chemistry Marks"
+       onkeyup="calculate()">
+
+<input type="number"
+       name="maths"
+       id="maths"
+       placeholder="Mathematics Marks"
+       onkeyup="calculate()">
+
+<input type="number"
+       name="entrance"
+       id="entrance"
+       placeholder="Entrance Exam Score"
+       onkeyup="calculate()">
+
+<h3>
+    Total :
+    <span id="total">0</span>
+</h3>
+
+<h3>
+    Percentage :
+    <span id="percentage">0</span>%
+</h3>
+
+<h3>
+    Eligibility Preview :
+    <span id="preview">
+        Not Eligible
+    </span>
+</h3>
+
+<input type="hidden"
+       name="percentage"
+       id="hiddenPercentage">
+
+<button type="submit">
+    Submit
+</button>
+
+</form>
+
+</div>
+
+<script>
+
+function calculate(){
+
+    let p =
+        parseInt(
+        document.getElementById("physics").value)
+        || 0;
+
+    let c =
+        parseInt(
+        document.getElementById("chemistry").value)
+        || 0;
+
+    let m =
+        parseInt(
+        document.getElementById("maths").value)
+        || 0;
+
+    let entrance =
+        parseInt(
+        document.getElementById("entrance").value)
+        || 0;
+
+    // Validation
+    if(p > 100 || c > 100 || m > 100){
+
+        alert("Marks should be between 0 and 100");
+
+        return;
+    }
+
+    let total = p + c + m;
+
+    let percentage =
+        (total / 300) * 100;
+
+    document.getElementById("total")
+            .innerHTML = total;
+
+    document.getElementById("percentage")
+            .innerHTML =
+            percentage.toFixed(2);
+
+    document.getElementById("hiddenPercentage")
+            .value =
+            percentage.toFixed(2);
+
+    // Eligibility Preview
+    if(percentage >= 70 &&
+       entrance >= 60){
+
+        document.getElementById("preview")
+                .innerHTML =
+                "Eligible";
+    }
+    else{
+
+        document.getElementById("preview")
+                .innerHTML =
+                "Not Eligible";
+    }
+}
+
+function validateForm(){
+
+    let p =
+        document.getElementById("physics").value;
+
+    let c =
+        document.getElementById("chemistry").value;
+
+    let m =
+        document.getElementById("maths").value;
+
+    if(p < 0 || p > 100 ||
+       c < 0 || c > 100 ||
+       m < 0 || m > 100){
+
+        alert("Marks must be between 0 and 100");
+
+        return false;
+    }
+
+    return true;
+}
+
+</script>
+
+</body>
+</html>
+
+Admissionservlet.java
+import java.io.*;
+import jakarta.servlet.*;
+import jakarta.servlet.http.*;
+
+public class AdmissionServlet extends HttpServlet {
+
+    protected void doPost(HttpServletRequest req,
+                          HttpServletResponse res)
+            throws ServletException, IOException {
+
+        String name =
+                req.getParameter("name");
+
+        int physics =
+                Integer.parseInt(
+                req.getParameter("physics"));
+
+        int chemistry =
+                Integer.parseInt(
+                req.getParameter("chemistry"));
+
+        int maths =
+                Integer.parseInt(
+                req.getParameter("maths"));
+
+        int entrance =
+                Integer.parseInt(
+                req.getParameter("entrance"));
+
+        double percentage =
+                Double.parseDouble(
+                req.getParameter("percentage"));
+
+        String result;
+
+        // Eligibility Check
+        if(percentage >= 70 &&
+           entrance >= 60){
+
+            result = "Eligible for Admission";
+        }
+        else{
+
+            result = "Not Eligible";
+        }
+
+        req.setAttribute("name", name);
+        req.setAttribute("physics", physics);
+        req.setAttribute("chemistry", chemistry);
+        req.setAttribute("maths", maths);
+        req.setAttribute("entrance", entrance);
+        req.setAttribute("percentage", percentage);
+        req.setAttribute("result", result);
+
+        RequestDispatcher rd =
+                req.getRequestDispatcher("result.jsp");
+
+        rd.forward(req,res);
+    }
+}
+
+Result.jsp
+<html>
+
+<head>
+
+    <title>Admission Result</title>
+
+    <style>
+
+        body{
+            font-family: Arial;
+            background:#f2f2f2;
+        }
+
+        .box{
+            width:500px;
+            margin:auto;
+            background:white;
+            padding:20px;
+            margin-top:40px;
+            border-radius:10px;
+            box-shadow:0 0 10px gray;
+        }
+
+        h2{
+            text-align:center;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="box">
+
+<h2>
+    Admission Result
+</h2>
+
+<hr>
+
+Name :
+${name}
+<br><br>
+
+Physics :
+${physics}
+<br><br>
+
+Chemistry :
+${chemistry}
+<br><br>
+
+Mathematics :
+${maths}
+<br><br>
+
+Entrance Score :
+${entrance}
+<br><br>
+
+Percentage :
+${percentage}%
+<br><br>
+
+<h3>
+    ${result}
+</h3>
+
+</div>
+
+</body>
+</html>
+
+Web.xml
+<web-app xmlns="https://jakarta.ee/xml/ns/jakartaee"
+         version="5.0">
+
+    <servlet>
+
+        <servlet-name>
+            AdmissionServlet
+        </servlet-name>
+
+        <servlet-class>
+            AdmissionServlet
+        </servlet-class>
+
+    </servlet>
+
+    <servlet-mapping>
+
+        <servlet-name>
+            AdmissionServlet
+        </servlet-name>
+
+        <url-pattern>
+            /AdmissionServlet
+        </url-pattern>
+
+    </servlet-mapping>
+
+</web-app>
+
+
+
+	
+Question 8 Create an XML file containing product inventory data: • product id • name • category • price • stock quantity Using JavaScript: • display products in a table • highlight items with stock < 5 • allow filtering by category
+
+Products.xml
+<?xml version="1.0"?>
+
+<products>
+
+    <product>
+        <id>101</id>
+        <name>Laptop</name>
+        <category>Electronics</category>
+        <price>55000</price>
+        <stock>3</stock>
+    </product>
+
+    <product>
+        <id>102</id>
+        <name>Mobile</name>
+        <category>Electronics</category>
+        <price>25000</price>
+        <stock>10</stock>
+    </product>
+
+    <product>
+        <id>103</id>
+        <name>Chair</name>
+        <category>Furniture</category>
+        <price>3000</price>
+        <stock>2</stock>
+    </product>
+
+    <product>
+        <id>104</id>
+        <name>Table</name>
+        <category>Furniture</category>
+        <price>7000</price>
+        <stock>8</stock>
+    </product>
+
+    <product>
+        <id>105</id>
+        <name>Pen</name>
+        <category>Stationery</category>
+        <price>20</price>
+        <stock>50</stock>
+    </product>
+
+    <product>
+        <id>106</id>
+        <name>Notebook</name>
+        <category>Stationery</category>
+        <price>100</price>
+        <stock>4</stock>
+    </product>
+
+</products>
+
+Index.html
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Product Inventory</title>
+
+    <style>
+
+        body{
+            font-family: Arial;
+            background:#f2f2f2;
+        }
+
+        .container{
+            width:900px;
+            margin:auto;
+            background:white;
+            padding:20px;
+            margin-top:30px;
+            border-radius:10px;
+            box-shadow:0 0 10px gray;
+        }
+
+        table{
+            width:100%;
+            border-collapse:collapse;
+            margin-top:20px;
+        }
+
+        table, th, td{
+            border:1px solid black;
+            padding:10px;
+            text-align:center;
+        }
+
+        select{
+            padding:10px;
+        }
+
+        .lowstock{
+            background:red;
+            color:white;
+            font-weight:bold;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h2 align="center">
+    Product Inventory System
+</h2>
+
+<select id="category"
+        onchange="productFunction()">
+
+    <option value="All">
+        All Categories
+    </option>
+
+    <option value="Electronics">
+        Electronics
+    </option>
+
+    <option value="Furniture">
+        Furniture
+    </option>
+
+    <option value="Stationery">
+        Stationery
+    </option>
+
+</select>
+
+<table id="productTable">
+
+<tr>
+    <th>Product ID</th>
+    <th>Name</th>
+    <th>Category</th>
+    <th>Price</th>
+    <th>Stock Quantity</th>
+</tr>
+
+</table>
+
+</div>
+
+<script>
+
+function productFunction(){
+
+    let xhttp = new XMLHttpRequest();
+
+    xhttp.onreadystatechange = function(){
+
+        if(this.readyState == 4 &&
+           this.status == 200){
+
+            let xmlDoc = this.responseXML;
+
+            let products =
+                xmlDoc.getElementsByTagName("product");
+
+            let category =
+                document.getElementById("category")
+                .value;
+
+            let table =
+            `<tr>
+
+                <th>Product ID</th>
+
+                <th>Name</th>
+
+                <th>Category</th>
+
+                <th>Price</th>
+
+                <th>Stock Quantity</th>
+
+            </tr>`;
+
+            for(let i=0;i<products.length;i++){
+
+                let id =
+                    products[i]
+                    .getElementsByTagName("id")[0]
+                    .childNodes[0].nodeValue;
+
+                let name =
+                    products[i]
+                    .getElementsByTagName("name")[0]
+                    .childNodes[0].nodeValue;
+
+                let cat =
+                    products[i]
+                    .getElementsByTagName("category")[0]
+                    .childNodes[0].nodeValue;
+
+                let price =
+                    products[i]
+                    .getElementsByTagName("price")[0]
+                    .childNodes[0].nodeValue;
+
+                let stock =
+                    products[i]
+                    .getElementsByTagName("stock")[0]
+                    .childNodes[0].nodeValue;
+
+                if(category == "All"
+                    || cat == category){
+
+                    let rowClass =
+                        stock < 5
+                        ? "lowstock"
+                        : "";
+
+                    table +=
+                    `<tr class="${rowClass}">
+
+                        <td>${id}</td>
+
+                        <td>${name}</td>
+
+                        <td>${cat}</td>
+
+                        <td>${price}</td>
+
+                        <td>${stock}</td>
+
+                    </tr>`;
+                }
+            }
+
+            document.getElementById("productTable")
+                    .innerHTML = table;
+        }
+    };
+
+    xhttp.open("GET",
+               "products.xml",
+               true);
+
+    xhttp.send();
+}
+
+// Initial Load
+productFunction();
+
+</script>
+
+</body>
+</html>
+Question 9
+Create an XML file of university events with fields:
+• event name
+• department
+• date
+• venue
+• organizer
+Using JavaScript:
+• display events sorted by date
+• allow users to search events by department
+Events.xml
+<?xml version="1.0"?>
+
+<events>
+
+    <event>
+        <name>Tech Symposium</name>
+        <department>CSE</department>
+        <date>2025-09-10</date>
+        <venue>Main Hall</venue>
+        <organizer>Dr. Ravi</organizer>
+    </event>
+
+    <event>
+        <name>AI Workshop</name>
+        <department>CSE</department>
+        <date>2025-08-15</date>
+        <venue>Lab 1</venue>
+        <organizer>Dr. Priya</organizer>
+    </event>
+
+    <event>
+        <name>Business Seminar</name>
+        <department>MBA</department>
+        <date>2025-09-05</date>
+        <venue>Conference Room</venue>
+        <organizer>Mr. Kumar</organizer>
+    </event>
+
+    <event>
+        <name>Cultural Fest</name>
+        <department>Arts</department>
+        <date>2025-08-25</date>
+        <venue>Auditorium</venue>
+        <organizer>Ms. Divya</organizer>
+    </event>
+
+    <event>
+        <name>Robotics Expo</name>
+        <department>ECE</department>
+        <date>2025-10-01</date>
+        <venue>Innovation Center</venue>
+        <organizer>Dr. Arun</organizer>
+    </event>
+
+</events>
+Index.html
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>University Events</title>
+
+    <style>
+
+        body{
+            font-family: Arial;
+            background:#f2f2f2;
+        }
+
+        .container{
+            width:950px;
+            margin:auto;
+            background:white;
+            padding:20px;
+            margin-top:30px;
+            border-radius:10px;
+            box-shadow:0 0 10px gray;
+        }
+
+        table{
+            width:100%;
+            border-collapse:collapse;
+            margin-top:20px;
+        }
+
+        table, th, td{
+            border:1px solid black;
+            padding:10px;
+            text-align:center;
+        }
+
+        input{
+            padding:10px;
+            width:250px;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h2 align="center">
+    University Events
+</h2>
+
+<input type="text"
+       id="search"
+       placeholder="Search by Department"
+       onkeyup="eventFunction()">
+
+<table id="eventTable">
+
+<tr>
+    <th>Event Name</th>
+    <th>Department</th>
+    <th>Date</th>
+    <th>Venue</th>
+    <th>Organizer</th>
+</tr>
+
+</table>
+
+</div>
+
+<script>
+
+function eventFunction(){
+
+    let xhttp = new XMLHttpRequest();
+
+    xhttp.onreadystatechange = function(){
+
+        if(this.readyState == 4 &&
+           this.status == 200){
+
+            let xmlDoc = this.responseXML;
+
+            let events =
+                xmlDoc.getElementsByTagName("event");
+
+            let eventData = [];
+
+            for(let i=0;i<events.length;i++){
+
+                eventData.push({
+
+                    name:
+                    events[i]
+                    .getElementsByTagName("name")[0]
+                    .childNodes[0].nodeValue,
+
+                    department:
+                    events[i]
+                    .getElementsByTagName("department")[0]
+                    .childNodes[0].nodeValue,
+
+                    date:
+                    events[i]
+                    .getElementsByTagName("date")[0]
+                    .childNodes[0].nodeValue,
+
+                    venue:
+                    events[i]
+                    .getElementsByTagName("venue")[0]
+                    .childNodes[0].nodeValue,
+
+                    organizer:
+                    events[i]
+                    .getElementsByTagName("organizer")[0]
+                    .childNodes[0].nodeValue
+                });
+            }
+
+            // Sort by Date
+            eventData.sort(
+                (a,b) =>
+                new Date(a.date) - new Date(b.date)
+            );
+
+            let search =
+                document.getElementById("search")
+                .value.toLowerCase();
+
+            let table =
+            `<tr>
+
+                <th>Event Name</th>
+
+                <th>Department</th>
+
+                <th>Date</th>
+
+                <th>Venue</th>
+
+                <th>Organizer</th>
+
+            </tr>`;
+
+            for(let i=0;i<eventData.length;i++){
+
+                if(eventData[i]
+                    .department
+                    .toLowerCase()
+                    .includes(search)){
+
+                    table +=
+                    `<tr>
+
+                        <td>${eventData[i].name}</td>
+
+                        <td>${eventData[i].department}</td>
+
+                        <td>${eventData[i].date}</td>
+
+                        <td>${eventData[i].venue}</td>
+
+                        <td>${eventData[i].organizer}</td>
+
+                    </tr>`;
+                }
+            }
+
+            document.getElementById("eventTable")
+                    .innerHTML = table;
+        }
+    };
+
+    xhttp.open("GET",
+               "events.xml",
+               true);
+
+    xhttp.send();
+}
+
+// Initial Load
+eventFunction();
+
+</script>
+
+</body>
+</html>
+
+Question 10
+Design a Currency Converter Webpage.
+Requirements:
+• input amount
+• dropdowns for from currency and to currency
+Use JavaScript to validate input and send the data to a Servlet which performs conversion (use
+predefined rates).
+Display the converted amount in JSP.
+
+Index.html
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Currency Converter</title>
+
+    <style>
+
+        body{
+            font-family: Arial;
+            background:#f2f2f2;
+        }
+
+        .container{
+            width:450px;
+            margin:auto;
+            background:white;
+            padding:20px;
+            margin-top:40px;
+            border-radius:10px;
+            box-shadow:0 0 10px gray;
+        }
+
+        input, select{
+            width:100%;
+            padding:10px;
+            margin-top:10px;
+            box-sizing:border-box;
+        }
+
+        button{
+            width:100%;
+            padding:10px;
+            margin-top:15px;
+        }
+
+        h2{
+            text-align:center;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>
+    Currency Converter
+</h2>
+
+<form action="CurrencyServlet"
+      method="post"
+      onsubmit="return validateForm()">
+
+<input type="number"
+       name="amount"
+       id="amount"
+       placeholder="Enter Amount">
+
+<select name="from">
+
+    <option value="INR">INR</option>
+    <option value="USD">USD</option>
+    <option value="EUR">EUR</option>
+
+</select>
+
+<select name="to">
+
+    <option value="USD">USD</option>
+    <option value="INR">INR</option>
+    <option value="EUR">EUR</option>
+
+</select>
+
+<button type="submit">
+    Convert Currency
+</button>
+
+</form>
+
+</div>
+
+<script>
+
+function validateForm(){
+
+    let amount =
+        document.getElementById("amount").value;
+
+    if(amount == "" || amount <= 0){
+
+        alert("Enter valid amount");
+
+        return false;
+    }
+
+    return true;
+}
+
+</script>
+
+</body>
+</html>
+
+Currencyservlet.java
+import java.io.*;
+import jakarta.servlet.*;
+import jakarta.servlet.http.*;
+
+public class CurrencyServlet extends HttpServlet {
+
+    protected void doPost(HttpServletRequest req,
+                          HttpServletResponse res)
+            throws ServletException, IOException {
+
+        double amount =
+                Double.parseDouble(
+                req.getParameter("amount"));
+
+        String from =
+                req.getParameter("from");
+
+        String to =
+                req.getParameter("to");
+
+        double converted = 0;
+
+        // Predefined Conversion Rates
+
+        if(from.equals("INR") && to.equals("USD")){
+
+            converted = amount * 0.012;
+        }
+
+        else if(from.equals("USD") && to.equals("INR")){
+
+            converted = amount * 83;
+        }
+
+        else if(from.equals("INR") && to.equals("EUR")){
+
+            converted = amount * 0.011;
+        }
+
+        else if(from.equals("EUR") && to.equals("INR")){
+
+            converted = amount * 90;
+        }
+
+        else if(from.equals("USD") && to.equals("EUR")){
+
+            converted = amount * 0.92;
+        }
+
+        else if(from.equals("EUR") && to.equals("USD")){
+
+            converted = amount * 1.08;
+        }
+
+        else{
+
+            converted = amount;
+        }
+
+        req.setAttribute("amount", amount);
+        req.setAttribute("from", from);
+        req.setAttribute("to", to);
+        req.setAttribute("converted", converted);
+
+        RequestDispatcher rd =
+                req.getRequestDispatcher("result.jsp");
+
+        rd.forward(req,res);
+    }
+}
+
+Result.jsp
+<html>
+
+<head>
+
+    <title>Conversion Result</title>
+
+    <style>
+
+        body{
+            font-family: Arial;
+            background:#f2f2f2;
+        }
+
+        .box{
+            width:450px;
+            margin:auto;
+            background:white;
+            padding:20px;
+            margin-top:40px;
+            border-radius:10px;
+            box-shadow:0 0 10px gray;
+        }
+
+        h2{
+            text-align:center;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="box">
+
+<h2>
+    Currency Conversion Result
+</h2>
+
+<hr>
+
+Original Amount :
+${amount}
+${from}
+
+<br><br>
+
+Converted Amount :
+${converted}
+${to}
+
+</div>
+
+</body>
+</html>
+
+Web.xml
+<web-app xmlns="https://jakarta.ee/xml/ns/jakartaee"
+         version="5.0">
+    <servlet>
+        <servlet-name>
+            CurrencyServlet
+        </servlet-name>
+        <servlet-class>
+            CurrencyServlet
+        </servlet-class>
+    </servlet>
+    <servlet-mapping>
+
+        <servlet-name>
+            CurrencyServlet
+        </servlet-name>
+
+        <url-pattern>
+            /CurrencyServlet
+        </url-pattern>
+
+    </servlet-mapping>
+
+</web-app>
+
+
+Question 11
+Create a Payroll Processing Page.
+Input fields:
+• employee name
+• basic salary
+• HRA percentage
+• bonus amount
+JavaScript should validate inputs and send the data to a Servlet which calculates:
+Gross Salary = Basic + HRA + Bonus.
+Display the breakdown in a formatted JSP page
+Index.html
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Payroll Processing</title>
+
+    <style>
+
+        body{
+            font-family: Arial;
+            background:#f2f2f2;
+        }
+
+        .container{
+            width:450px;
+            margin:auto;
+            background:white;
+            padding:20px;
+            margin-top:40px;
+            border-radius:10px;
+            box-shadow:0 0 10px gray;
+        }
+
+        input{
+            width:100%;
+            padding:10px;
+            margin-top:10px;
+            box-sizing:border-box;
+        }
+
+        button{
+            width:100%;
+            padding:10px;
+            margin-top:15px;
+        }
+
+        h2{
+            text-align:center;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>
+    Payroll Processing System
+</h2>
+
+<form action="PayrollServlet"
+      method="post"
+      onsubmit="return validateForm()">
+
+<input type="text"
+       name="name"
+       id="name"
+       placeholder="Employee Name">
+
+<input type="number"
+       name="basic"
+       id="basic"
+       placeholder="Basic Salary">
+
+<input type="number"
+       name="hra"
+       id="hra"
+       placeholder="HRA Percentage">
+
+<input type="number"
+       name="bonus"
+       id="bonus"
+       placeholder="Bonus Amount">
+
+<button type="submit">
+    Calculate Salary
+</button>
+
+</form>
+
+</div>
+
+<script>
+
+function validateForm(){
+
+    let name =
+        document.getElementById("name").value;
+
+    let basic =
+        document.getElementById("basic").value;
+
+    let hra =
+        document.getElementById("hra").value;
+
+    let bonus =
+        document.getElementById("bonus").value;
+
+    if(name == ""){
+
+        alert("Enter Employee Name");
+
+        return false;
+    }
+
+    if(basic <= 0 ||
+       hra < 0 ||
+       bonus < 0){
+
+        alert("Enter valid salary details");
+
+        return false;
+    }
+
+    return true;
+}
+
+</script>
+
+</body>
+</html>
+
+
+Payrollservlet.java
+import java.io.*;
+import jakarta.servlet.*;
+import jakarta.servlet.http.*;
+
+public class PayrollServlet extends HttpServlet {
+
+    protected void doPost(HttpServletRequest req,
+                          HttpServletResponse res)
+            throws ServletException, IOException {
+
+        String name =
+                req.getParameter("name");
+
+        double basic =
+                Double.parseDouble(
+                req.getParameter("basic"));
+
+        double hraPercent =
+                Double.parseDouble(
+                req.getParameter("hra"));
+
+        double bonus =
+                Double.parseDouble(
+                req.getParameter("bonus"));
+
+        // HRA Calculation
+        double hra =
+                (basic * hraPercent) / 100;
+
+        // Gross Salary
+        double gross =
+                basic + hra + bonus;
+
+        req.setAttribute("name", name);
+        req.setAttribute("basic", basic);
+        req.setAttribute("hraPercent", hraPercent);
+        req.setAttribute("hra", hra);
+        req.setAttribute("bonus", bonus);
+        req.setAttribute("gross", gross);
+
+        RequestDispatcher rd =
+
+                req.getRequestDispatcher("result.jsp");
+
+        rd.forward(req,res);
+    }
+}
+Result.jsp
+<html>
+
+<head>
+
+    <title>Payroll Result</title>
+
+    <style>
+
+        body{
+            font-family: Arial;
+            background:#f2f2f2;
+        }
+
+        .box{
+            width:500px;
+            margin:auto;
+            background:white;
+            padding:20px;
+            margin-top:40px;
+            border-radius:10px;
+            box-shadow:0 0 10px gray;
+        }
+
+        h2{
+            text-align:center;
+        }
+
+        table{
+            width:100%;
+            border-collapse:collapse;
+            margin-top:20px;
+        }
+
+        table, th, td{
+            border:1px solid black;
+            padding:10px;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="box">
+
+<h2>
+    Payroll Details
+</h2>
+
+<table>
+
+<tr>
+    <th>Employee Name</th>
+    <td>${name}</td>
+</tr>
+
+<tr>
+    <th>Basic Salary</th>
+    <td>${basic}</td>
+</tr>
+
+<tr>
+    <th>HRA Percentage</th>
+    <td>${hraPercent}%</td>
+</tr>
+
+<tr>
+    <th>HRA Amount</th>
+    <td>${hra}</td>
+</tr>
+
+<tr>
+    <th>Bonus</th>
+    <td>${bonus}</td>
+</tr>
+
+<tr>
+    <th>Gross Salary</th>
+    <td>${gross}</td>
+</tr>
+
+</table>
+
+</div>
+
+</body>
+</html>
+Web.xml
+<web-app xmlns="https://jakarta.ee/xml/ns/jakartaee"
+         version="5.0">
+
+    <servlet>
+
+        <servlet-name>
+            PayrollServlet
+        </servlet-name>
+
+        <servlet-class>
+            PayrollServlet
+        </servlet-class>
+
+    </servlet>
+
+    <servlet-mapping>
+
+        <servlet-name>
+            PayrollServlet
+        </servlet-name>
+
+        <url-pattern>
+            /PayrollServlet
+        </url-pattern>
+
+    </servlet-mapping>
+
+</web-app>
+
+Question 12
+Design a Dynamic Shopping Cart System.
+Requirements:
+• display five products
+• allow quantity input
+• calculate subtotal per product
+• dynamically update grand total
+• apply 10% discount if total > ₹2000
+• display final payable amount.
+Index.html
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Shopping Cart</title>
+
+    <style>
+
+        body{
+            font-family: Arial;
+            background:#f2f2f2;
+        }
+
+        .container{
+            width:950px;
+            margin:auto;
+            background:white;
+            padding:20px;
+            margin-top:30px;
+            border-radius:10px;
+            box-shadow:0 0 10px gray;
+        }
+
+        table{
+            width:100%;
+            border-collapse:collapse;
+            margin-top:20px;
+        }
+
+        table, th, td{
+            border:1px solid black;
+            padding:10px;
+            text-align:center;
+        }
+
+        input{
+            width:60px;
+            padding:5px;
+        }
+
+        h2,h3{
+            text-align:center;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>
+    Dynamic Shopping Cart
+</h2>
+
+<table>
+
+<tr>
+
+    <th>Product</th>
+
+    <th>Price</th>
+
+    <th>Quantity</th>
+
+    <th>Subtotal</th>
+
+</tr>
+
+<tr>
+
+    <td>Laptop</td>
+
+    <td id="p1">50000</td>
+
+    <td>
+        <input type="number"
+               id="q1"
+               value="0"
+               min="0"
+               onkeyup="cartFunction()"
+               onchange="cartFunction()">
+    </td>
+
+    <td id="s1">0</td>
+
+</tr>
+
+<tr>
+
+    <td>Mobile</td>
+
+    <td id="p2">20000</td>
+
+    <td>
+        <input type="number"
+               id="q2"
+               value="0"
+               min="0"
+               onkeyup="cartFunction()"
+               onchange="cartFunction()">
+    </td>
+
+    <td id="s2">0</td>
+
+</tr>
+
+<tr>
+
+    <td>Headphones</td>
+
+    <td id="p3">2000</td>
+
+    <td>
+        <input type="number"
+               id="q3"
+               value="0"
+               min="0"
+               onkeyup="cartFunction()"
+               onchange="cartFunction()">
+    </td>
+
+    <td id="s3">0</td>
+
+</tr>
+
+<tr>
+
+    <td>Keyboard</td>
+
+    <td id="p4">1500</td>
+
+    <td>
+        <input type="number"
+               id="q4"
+               value="0"
+               min="0"
+               onkeyup="cartFunction()"
+               onchange="cartFunction()">
+    </td>
+
+    <td id="s4">0</td>
+
+</tr>
+
+<tr>
+
+    <td>Mouse</td>
+
+    <td id="p5">800</td>
+
+    <td>
+        <input type="number"
+               id="q5"
+               value="0"
+               min="0"
+               onkeyup="cartFunction()"
+               onchange="cartFunction()">
+    </td>
+
+    <td id="s5">0</td>
+
+</tr>
+
+</table>
+
+<h3>
+    Grand Total :
+    ₹<span id="grand">0</span>
+</h3>
+
+<h3>
+    Discount :
+    ₹<span id="discount">0</span>
+</h3>
+
+<h3>
+    Final Payable Amount :
+    ₹<span id="final">0</span>
+</h3>
+
+</div>
+
+<script>
+
+function cartFunction(){
+
+    let grandTotal = 0;
+
+    for(let i=1;i<=5;i++){
+
+        let price =
+            parseInt(
+            document.getElementById("p"+i)
+            .innerHTML);
+
+        let qty =
+            parseInt(
+            document.getElementById("q"+i)
+            .value) || 0;
+
+        let subtotal =
+            price * qty;
+
+        document.getElementById("s"+i)
+                .innerHTML = subtotal;
+
+        grandTotal += subtotal;
+    }
+
+    document.getElementById("grand")
+            .innerHTML = grandTotal;
+
+    let discount = 0;
+
+    // Apply 10% discount
+    if(grandTotal > 2000){
+
+        discount = grandTotal * 0.10;
+    }
+
+    document.getElementById("discount")
+            .innerHTML = discount;
+
+    let finalAmount =
+        grandTotal - discount;
+
+    document.getElementById("final")
+            .innerHTML = finalAmount;
+}
+
+</script>
+
+</body>
+</html>
+
+Question 13
+Create a Task Management Dashboard.
+Users should be able to:
+• add tasks
+• assign priority (low/medium/high)
+• mark tasks as completed
+• filter tasks by priority.
+Use JavaScript to update counts of:
+• completed tasks
+• pending tasks.
+
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Task Management Dashboard</title>
+
+    <style>
+
+        body{
+            font-family: Arial;
+            background:#f2f2f2;
+        }
+
+        .container{
+            width:900px;
+            margin:auto;
+            background:white;
+            padding:20px;
+            margin-top:30px;
+            border-radius:10px;
+            box-shadow:0 0 10px gray;
+        }
+
+        input, select, button{
+            padding:10px;
+            margin:5px;
+        }
+
+        table{
+            width:100%;
+            border-collapse:collapse;
+            margin-top:20px;
+        }
+
+        table, th, td{
+            border:1px solid black;
+            padding:10px;
+            text-align:center;
+        }
+
+        .completed{
+            background:lightgreen;
+            text-decoration:line-through;
+        }
+
+        .high{
+            background:#ffcccc;
+        }
+
+        .medium{
+            background:#fff0b3;
+        }
+
+        .low{
+            background:#d9f2d9;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h2 align="center">
+    Task Management Dashboard
+</h2>
+
+<input type="text"
+       id="task"
+       placeholder="Enter Task">
+
+<select id="priority">
+
+    <option value="Low">
+        Low
+    </option>
+
+    <option value="Medium">
+        Medium
+    </option>
+
+    <option value="High">
+        High
+    </option>
+
+</select>
+
+<button onclick="taskFunction('add')">
+    Add Task
+</button>
+
+<select id="filter"
+        onchange="taskFunction('filter')">
+
+    <option value="All">
+        All Tasks
+    </option>
+
+    <option value="Low">
+        Low Priority
+    </option>
+
+    <option value="Medium">
+        Medium Priority
+    </option>
+
+    <option value="High">
+        High Priority
+    </option>
+
+</select>
+
+<h3>
+    Completed Tasks :
+    <span id="completedCount">0</span>
+</h3>
+
+<h3>
+    Pending Tasks :
+    <span id="pendingCount">0</span>
+</h3>
+
+<table id="taskTable">
+
+<tr>
+
+    <th>Task</th>
+
+    <th>Priority</th>
+
+    <th>Status</th>
+
+</tr>
+
+</table>
+
+</div>
+
+<script>
+
+let tasks = [];
+
+function taskFunction(action, index = -1){
+
+    // ADD TASK
+    if(action == "add"){
+
+        let task =
+            document.getElementById("task").value;
+
+        let priority =
+            document.getElementById("priority").value;
+
+        if(task == ""){
+
+            alert("Enter Task");
+
+            return;
+        }
+
+        tasks.push({
+
+            task: task,
+
+            priority: priority,
+
+            completed: false
+        });
+
+        document.getElementById("task").value = "";
+    }
+
+    // MARK COMPLETED
+    if(action == "complete"){
+
+        tasks[index].completed = true;
+    }
+
+    let filter =
+        document.getElementById("filter").value;
+
+    let table =
+    `<tr>
+
+        <th>Task</th>
+
+        <th>Priority</th>
+
+        <th>Status</th>
+
+    </tr>`;
+
+    let completedCount = 0;
+    let pendingCount = 0;
+
+    for(let i=0;i<tasks.length;i++){
+
+        if(filter == "All"
+            || tasks[i].priority == filter){
+
+            let rowClass = "";
+
+            if(tasks[i].priority == "High"){
+
+                rowClass = "high";
+            }
+
+            else if(tasks[i].priority == "Medium"){
+
+                rowClass = "medium";
+            }
+
+            else{
+
+                rowClass = "low";
+            }
+
+            if(tasks[i].completed){
+
+                completedCount++;
+
+                rowClass += " completed";
+            }
+            else{
+
+                pendingCount++;
+            }
+
+            table +=
+            `<tr class="${rowClass}">
+
+                <td>${tasks[i].task}</td>
+
+                <td>${tasks[i].priority}</td>
+
+                <td>`;
+
+            if(tasks[i].completed){
+
+                table += "Completed";
+            }
+            else{
+
+                table +=
+                `<button onclick="taskFunction('complete',${i})">
+
+                    Mark Completed
+
+                </button>`;
+            }
+
+            table +=
+            `</td>
+
+            </tr>`;
+        }
+    }
+
+    document.getElementById("taskTable")
+            .innerHTML = table;
+
+    document.getElementById("completedCount")
+            .innerHTML = completedCount;
+
+    document.getElementById("pendingCount")
+            .innerHTML = pendingCount;
+}
+
+</script>
+
+</body>
+</html>
+
+
+Question 14
+Design a Real-Time Character Counter Tool.
+Requirements:
+• textarea input
+• show live counts for:
+o characters
+o words
+o sentences.
+Highlight the counter in red if characters exceed 200.
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Character Counter Tool</title>
+
+    <style>
+
+        body{
+            font-family: Arial;
+            background:#f2f2f2;
+        }
+
+        .container{
+
+            width:700px;
+
+            margin:auto;
+
+            background:white;
+
+            padding:20px;
+
+            margin-top:40px;
+
+            border-radius:10px;
+
+            box-shadow:0 0 10px gray;
+        }
+
+        textarea{
+
+            width:100%;
+
+            height:200px;
+
+            padding:10px;
+
+            font-size:16px;
+
+            box-sizing:border-box;
+        }
+
+        h2,h3{
+            text-align:center;
+        }
+
+        .red{
+            color:red;
+            font-weight:bold;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>
+    Real-Time Character Counter
+</h2>
+
+<textarea id="text"
+          placeholder="Type your text here..."
+          onkeyup="counterFunction()"></textarea>
+
+<h3>
+    Characters :
+    <span id="charCount">0</span>
+</h3>
+
+<h3>
+    Words :
+    <span id="wordCount">0</span>
+</h3>
+
+<h3>
+    Sentences :
+    <span id="sentenceCount">0</span>
+</h3>
+
+</div>
+
+<script>
+
+function counterFunction(){
+
+    let text =
+        document.getElementById("text").value;
+
+    // Character Count
+    let characters = text.length;
+
+    // Word Count
+    let words =
+        text.trim() == ""
+        ? 0
+        : text.trim().split(/\s+/).length;
+
+    // Sentence Count
+    let sentences =
+        text.trim() == ""
+        ? 0
+        : text.split(/[.!?]+/)
+              .filter(s => s.trim().length > 0)
+              .length;
+
+    document.getElementById("charCount")
+            .innerHTML = characters;
+
+    document.getElementById("wordCount")
+            .innerHTML = words;
+
+    document.getElementById("sentenceCount")
+            .innerHTML = sentences;
+
+    // Highlight Red if Characters > 200
+    if(characters > 200){
+
+        document.getElementById("charCount")
+                .classList.add("red");
+    }
+    else{
+
+        document.getElementById("charCount")
+                .classList.remove("red");
+    }
+}
+
+</script>
+
+</body>
+</html>
+
+Question 15
+Create a Countdown Event Tracker.
+User enters:
+• event name
+• event date
+JavaScript should:
+• display countdown timer
+• show days, hours, minutes, seconds
+• display “Event Started” once time reaches zero.
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Countdown Event Tracker</title>
+
+    <style>
+
+        body{
+            font-family: Arial;
+            background:#f2f2f2;
+        }
+
+        .container{
+
+            width:600px;
+
+            margin:auto;
+
+            background:white;
+
+            padding:20px;
+
+            margin-top:40px;
+
+            border-radius:10px;
+
+            box-shadow:0 0 10px gray;
+
+            text-align:center;
+        }
+
+        input{
+
+            width:90%;
+
+            padding:10px;
+
+            margin-top:10px;
+        }
+
+        button{
+
+            padding:10px 20px;
+
+            margin-top:15px;
+
+            cursor:pointer;
+        }
+
+        .timer{
+
+            font-size:28px;
+
+            margin-top:20px;
+
+            font-weight:bold;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>
+    Countdown Event Tracker
+</h2>
+
+<input type="text"
+       id="eventName"
+       placeholder="Enter Event Name">
+
+<br>
+
+<input type="datetime-local"
+       id="eventDate">
+
+<br>
+
+<button onclick="countdownFunction()">
+    Start Countdown
+</button>
+
+<h2 id="eventTitle"></h2>
+
+<div class="timer"
+     id="timer">
+
+    00d : 00h : 00m : 00s
+
+</div>
+
+</div>
+
+<script>
+
+let interval;
+
+function countdownFunction(){
+
+    let eventName =
+        document.getElementById("eventName").value;
+
+    let eventDate =
+        document.getElementById("eventDate").value;
+
+    if(eventName == "" || eventDate == ""){
+
+        alert("Enter Event Name and Date");
+
+        return;
+    }
+
+    document.getElementById("eventTitle")
+            .innerHTML = eventName;
+
+    let targetDate =
+        new Date(eventDate).getTime();
+
+    clearInterval(interval);
+
+    interval = setInterval(function(){
+
+        let now =
+            new Date().getTime();
+
+        let distance =
+            targetDate - now;
+
+        // Event Started
+        if(distance <= 0){
+
+            clearInterval(interval);
+
+            document.getElementById("timer")
+                    .innerHTML =
+                    "Event Started";
+
+            return;
+        }
+
+        let days =
+            Math.floor(
+                distance / (1000*60*60*24)
+            );
+
+        let hours =
+            Math.floor(
+                (distance % (1000*60*60*24))
+                / (1000*60*60)
+            );
+
+        let minutes =
+            Math.floor(
+                (distance % (1000*60*60))
+                / (1000*60)
+            );
+
+        let seconds =
+            Math.floor(
+                (distance % (1000*60))
+                / 1000
+            );
+
+        document.getElementById("timer")
+                .innerHTML =
+
+                days + "d : " +
+
+                hours + "h : " +
+
+                minutes + "m : " +
+
+                seconds + "s";
+
+    },1000);
+}
+
+</script>
+
+</body>
+</html>
+
+Question 16
+Design a webpage that generates a Number Statistics Table.
+User inputs a maximum number N.
+JavaScript should dynamically create a table displaying:
+Number | Square | Cube | Even/Odd
+Highlight even numbers with a different background color
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Number Statistics Table</title>
+
+    <style>
+
+        body{
+            font-family: Arial;
+            background:#f2f2f2;
+        }
+
+        .container{
+
+            width:800px;
+
+            margin:auto;
+
+            background:white;
+
+            padding:20px;
+
+            margin-top:40px;
+
+            border-radius:10px;
+
+            box-shadow:0 0 10px gray;
+        }
+
+        input{
+
+            padding:10px;
+
+            width:200px;
+        }
+
+        button{
+
+            padding:10px 20px;
+
+            cursor:pointer;
+        }
+
+        table{
+
+            width:100%;
+
+            border-collapse:collapse;
+
+            margin-top:20px;
+        }
+
+        table, th, td{
+
+            border:1px solid black;
+
+            padding:10px;
+
+            text-align:center;
+        }
+
+        .even{
+
+            background:lightblue;
+        }
+
+        .odd{
+
+            background:#f9f9f9;
+        }
+
+        h2{
+            text-align:center;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>
+    Number Statistics Table
+</h2>
+
+<input type="number"
+       id="number"
+       placeholder="Enter Maximum Number">
+
+<button onclick="tableFunction()">
+    Generate Table
+</button>
+
+<table id="resultTable">
+
+<tr>
+
+    <th>Number</th>
+
+    <th>Square</th>
+
+    <th>Cube</th>
+
+    <th>Even/Odd</th>
+
+</tr>
+
+</table>
+
+</div>
+
+<script>
+
+function tableFunction(){
+
+    let n =
+        parseInt(
+        document.getElementById("number").value);
+
+    if(isNaN(n) || n <= 0){
+
+        alert("Enter Valid Number");
+
+        return;
+    }
+
+    let table =
+    `<tr>
+
+        <th>Number</th>
+
+        <th>Square</th>
+
+        <th>Cube</th>
+
+        <th>Even/Odd</th>
+
+    </tr>`;
+
+    for(let i=1;i<=n;i++){
+
+        let square = i * i;
+
+        let cube = i * i * i;
+
+        let type =
+            i % 2 == 0
+            ? "Even"
+            : "Odd";
+
+        let rowClass =
+            i % 2 == 0
+            ? "even"
+            : "odd";
+
+        table +=
+        `<tr class="${rowClass}">
+
+            <td>${i}</td>
+
+            <td>${square}</td>
+
+            <td>${cube}</td>
+
+            <td>${type}</td>
+
+        </tr>`;
+    }
+
+    document.getElementById("resultTable")
+            .innerHTML = table;
+}
+
+</script>
+
+</body>
+</html>
+
+Question 17
+Create an XML dataset of books in a digital library.
+Fields:
+• title
+• author
+• genre
+• year
+• rating
+Using JavaScript:
+• display books in a table
+• allow sorting by year or rating
+• filter by genre
+Books.xml
+<?xml version="1.0"?>
+
+<books>
+
+    <book>
+        <title>The Alchemist</title>
+        <author>Paulo Coelho</author>
+        <genre>Fiction</genre>
+        <year>1988</year>
+        <rating>4.5</rating>
+    </book>
+
+    <book>
+        <title>Harry Potter</title>
+        <author>J.K. Rowling</author>
+        <genre>Fantasy</genre>
+        <year>1997</year>
+        <rating>4.8</rating>
+    </book>
+
+    <book>
+        <title>Atomic Habits</title>
+        <author>James Clear</author>
+        <genre>Self Help</genre>
+        <year>2018</year>
+        <rating>4.7</rating>
+    </book>
+
+    <book>
+        <title>Rich Dad Poor Dad</title>
+        <author>Robert Kiyosaki</author>
+        <genre>Finance</genre>
+        <year>1997</year>
+        <rating>4.4</rating>
+    </book>
+
+    <book>
+        <title>Ikigai</title>
+        <author>Hector Garcia</author>
+        <genre>Self Help</genre>
+        <year>2016</year>
+        <rating>4.6</rating>
+    </book>
+
+</books>
+
+Index.html
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Digital Library</title>
+
+    <style>
+
+        body{
+            font-family: Arial;
+            background:#f2f2f2;
+        }
+
+        .container{
+
+            width:950px;
+
+            margin:auto;
+
+            background:white;
+
+            padding:20px;
+
+            margin-top:40px;
+
+            border-radius:10px;
+
+            box-shadow:0 0 10px gray;
+        }
+
+        table{
+
+            width:100%;
+
+            border-collapse:collapse;
+
+            margin-top:20px;
+        }
+
+        table, th, td{
+
+            border:1px solid black;
+
+            padding:10px;
+
+            text-align:center;
+        }
+
+        select{
+
+            padding:10px;
+
+            margin-right:10px;
+        }
+
+        h2{
+            text-align:center;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>
+    Digital Library
+</h2>
+
+<select id="sort"
+        onchange="bookFunction()">
+
+    <option value="none">
+        Sort By
+    </option>
+
+    <option value="year">
+        Year
+    </option>
+
+    <option value="rating">
+        Rating
+    </option>
+
+</select>
+
+<select id="genre"
+        onchange="bookFunction()">
+
+    <option value="All">
+        All Genres
+    </option>
+
+    <option value="Fiction">
+        Fiction
+    </option>
+
+    <option value="Fantasy">
+        Fantasy
+    </option>
+
+    <option value="Self Help">
+        Self Help
+    </option>
+
+    <option value="Finance">
+        Finance
+    </option>
+
+</select>
+
+<table id="bookTable">
+
+<tr>
+
+    <th>Title</th>
+
+    <th>Author</th>
+
+    <th>Genre</th>
+
+    <th>Year</th>
+
+    <th>Rating</th>
+
+</tr>
+
+</table>
+
+</div>
+
+<script>
+
+function bookFunction(){
+
+    let xhttp = new XMLHttpRequest();
+
+    xhttp.onreadystatechange = function(){
+
+        if(this.readyState == 4 &&
+           this.status == 200){
+
+            let xmlDoc = this.responseXML;
+
+            let books =
+                xmlDoc.getElementsByTagName("book");
+
+            let data = [];
+
+            for(let i=0;i<books.length;i++){
+
+                data.push({
+
+                    title:
+                    books[i]
+                    .getElementsByTagName("title")[0]
+                    .childNodes[0].nodeValue,
+
+                    author:
+                    books[i]
+                    .getElementsByTagName("author")[0]
+                    .childNodes[0].nodeValue,
+
+                    genre:
+                    books[i]
+                    .getElementsByTagName("genre")[0]
+                    .childNodes[0].nodeValue,
+
+                    year:
+                    parseInt(
+                    books[i]
+                    .getElementsByTagName("year")[0]
+                    .childNodes[0].nodeValue),
+
+                    rating:
+                    parseFloat(
+                    books[i]
+                    .getElementsByTagName("rating")[0]
+                    .childNodes[0].nodeValue)
+                });
+            }
+
+            let sort =
+                document.getElementById("sort")
+                .value;
+
+            let genre =
+                document.getElementById("genre")
+                .value;
+
+            // Sort by Year
+            if(sort == "year"){
+
+                data.sort(
+                    (a,b) => a.year - b.year
+                );
+            }
+
+            // Sort by Rating
+            if(sort == "rating"){
+
+                data.sort(
+                    (a,b) => b.rating - a.rating
+                );
+            }
+
+            let table =
+            `<tr>
+
+                <th>Title</th>
+
+                <th>Author</th>
+
+                <th>Genre</th>
+
+                <th>Year</th>
+
+                <th>Rating</th>
+
+            </tr>`;
+
+            for(let i=0;i<data.length;i++){
+
+                if(genre == "All"
+                    || data[i].genre == genre){
+
+                    table +=
+                    `<tr>
+
+                        <td>${data[i].title}</td>
+
+                        <td>${data[i].author}</td>
+
+                        <td>${data[i].genre}</td>
+
+                        <td>${data[i].year}</td>
+
+                        <td>${data[i].rating}</td>
+
+                    </tr>`;
+                }
+            }
+
+            document.getElementById("bookTable")
+                    .innerHTML = table;
+        }
+    };
+
+    xhttp.open("GET",
+               "books.xml",
+               true);
+
+    xhttp.send();
+}
+
+// Initial Load
+bookFunction();
+
+</script>
+
+</body>
+</html>
+
+Question 18
+Design a Responsive Blog Layout with:
+• header
+• navigation bar
+• blog content area
+• sidebar with recent posts
+• footer
+Use CSS Flexbox/Grid and implement JavaScript dark mode toggle with persistent state using
+localStorage.
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Responsive Blog Layout</title>
+
+    <style>
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+        }
+
+        body{
+            font-family:Arial;
+            background:white;
+            color:black;
+        }
+
+        /* HEADER */
+
+        header{
+
+            background:#333;
+
+            color:white;
+
+            padding:20px;
+
+            text-align:center;
+        }
+
+        /* NAVBAR */
+
+        nav{
+
+            background:#444;
+
+            display:flex;
+
+            justify-content:center;
+
+            flex-wrap:wrap;
+        }
+
+        nav a{
+
+            color:white;
+
+            text-decoration:none;
+
+            padding:15px 20px;
+        }
+
+        nav a:hover{
+
+            background:#666;
+        }
+
+        /* MAIN LAYOUT */
+
+        .container{
+
+            display:grid;
+
+            grid-template-columns:3fr 1fr;
+
+            gap:20px;
+
+            padding:20px;
+        }
+
+        /* BLOG CONTENT */
+
+        .content{
+
+            background:#f2f2f2;
+
+            padding:20px;
+
+            border-radius:10px;
+        }
+
+        .post{
+
+            margin-bottom:20px;
+
+            padding-bottom:15px;
+
+            border-bottom:1px solid gray;
+        }
+
+        /* SIDEBAR */
+
+        .sidebar{
+
+            background:#f9f9f9;
+
+            padding:20px;
+
+            border-radius:10px;
+        }
+
+        .sidebar ul{
+
+            list-style:none;
+        }
+
+        .sidebar li{
+
+            padding:10px 0;
+        }
+
+        /* FOOTER */
+
+        footer{
+
+            background:#333;
+
+            color:white;
+
+            text-align:center;
+
+            padding:15px;
+
+            margin-top:20px;
+        }
+
+        /* DARK MODE */
+
+        .dark{
+
+            background:#1e1e1e;
+
+            color:white;
+        }
+
+        .dark .content,
+        .dark .sidebar{
+
+            background:#333;
+
+            color:white;
+        }
+
+        .toggle-btn{
+
+            margin-top:10px;
+
+            padding:10px 15px;
+
+            cursor:pointer;
+        }
+
+        /* RESPONSIVE */
+
+        @media(max-width:768px){
+
+            .container{
+
+                grid-template-columns:1fr;
+            }
+
+            nav{
+
+                flex-direction:column;
+
+                align-items:center;
+            }
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<header>
+
+    <h1>
+        My Blog Website
+    </h1>
+
+    <button class="toggle-btn"
+            onclick="themeFunction()">
+
+        Toggle Dark Mode
+
+    </button>
+
+</header>
+
+<nav>
+
+    <a href="#">Home</a>
+
+    <a href="#">Articles</a>
+
+    <a href="#">Tutorials</a>
+
+    <a href="#">Contact</a>
+
+</nav>
+
+<div class="container">
+
+    <!-- BLOG CONTENT -->
+
+    <div class="content">
+
+        <div class="post">
+
+            <h2>
+                Web Development Trends
+            </h2>
+
+            <p>
+                Learn about the latest web development technologies and frameworks.
+            </p>
+
+        </div>
+
+        <div class="post">
+
+            <h2>
+                JavaScript Tips
+            </h2>
+
+            <p>
+                Improve your JavaScript coding skills with practical examples.
+            </p>
+
+        </div>
+
+        <div class="post">
+
+            <h2>
+                CSS Flexbox & Grid
+            </h2>
+
+            <p>
+                Build responsive layouts easily using Flexbox and Grid.
+            </p>
+
+        </div>
+
+    </div>
+
+    <!-- SIDEBAR -->
+
+    <div class="sidebar">
+
+        <h3>
+            Recent Posts
+        </h3>
+
+        <ul>
+
+            <li>HTML Basics</li>
+
+            <li>Responsive Design</li>
+
+            <li>Node.js Introduction</li>
+
+            <li>React Components</li>
+
+        </ul>
+
+    </div>
+
+</div>
+
+<footer>
+
+    <h3>
+        © 2025 My Blog Website
+    </h3>
+
+</footer>
+
+<script>
+
+function themeFunction(){
+
+    document.body.classList.toggle("dark");
+
+    // Save Mode
+    if(document.body.classList.contains("dark")){
+
+        localStorage.setItem("theme","dark");
+    }
+    else{
+
+        localStorage.setItem("theme","light");
+    }
+}
+
+// Load Saved Theme
+if(localStorage.getItem("theme") == "dark"){
+
+    document.body.classList.add("dark");
+}
+
+</script>
+
+</body>
+</html>
+
+Question 19
+Create a University Seminar Page containing:
+• seminar banner
+• speaker cards
+• schedule table
+• registration button.
+Use CSS cards with hover effects.
+JavaScript should display a modal popup with speaker details when a card is clicked
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>University Seminar</title>
+
+    <style>
+
+        body{
+            font-family:Arial;
+            background:#f2f2f2;
+            margin:0;
+        }
+
+        /* Banner */
+
+        .banner{
+
+            background:#003366;
+
+            color:white;
+
+            padding:40px;
+
+            text-align:center;
+        }
+
+        /* Speaker Cards */
+
+        .speaker-container{
+
+            display:flex;
+
+            justify-content:center;
+
+            flex-wrap:wrap;
+
+            gap:20px;
+
+            padding:20px;
+        }
+
+        .card{
+
+            width:250px;
+
+            background:white;
+
+            padding:20px;
+
+            border-radius:10px;
+
+            text-align:center;
+
+            box-shadow:0 0 10px gray;
+
+            cursor:pointer;
+
+            transition:0.3s;
+        }
+
+        .card:hover{
+
+            transform:scale(1.05);
+
+            background:#e6f2ff;
+        }
+
+        /* Schedule Table */
+
+        table{
+
+            width:90%;
+
+            margin:auto;
+
+            border-collapse:collapse;
+
+            background:white;
+        }
+
+        table, th, td{
+
+            border:1px solid black;
+
+            padding:10px;
+
+            text-align:center;
+        }
+
+        /* Button */
+
+        .btn{
+
+            display:block;
+
+            width:200px;
+
+            margin:30px auto;
+
+            padding:12px;
+
+            background:#003366;
+
+            color:white;
+
+            border:none;
+
+            cursor:pointer;
+
+            font-size:16px;
+        }
+
+        .btn:hover{
+
+            background:#0055aa;
+        }
+
+        /* Modal */
+
+        .modal{
+
+            display:none;
+
+            position:fixed;
+
+            top:0;
+
+            left:0;
+
+            width:100%;
+
+            height:100%;
+
+            background:rgba(0,0,0,0.7);
+        }
+
+        .modal-content{
+
+            background:white;
+
+            width:400px;
+
+            margin:100px auto;
+
+            padding:20px;
+
+            border-radius:10px;
+
+            text-align:center;
+        }
+
+        .close{
+
+            float:right;
+
+            cursor:pointer;
+
+            font-size:22px;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="banner">
+
+    <h1>
+        University AI Seminar 2025
+    </h1>
+
+    <p>
+        Innovations in Artificial Intelligence
+    </p>
+
+</div>
+
+<!-- Speaker Cards -->
+
+<div class="speaker-container">
+
+    <div class="card"
+         onclick="seminarFunction('Dr. Ravi','AI Research Expert')">
+
+        <h2>Dr. Ravi</h2>
+
+        <p>Artificial Intelligence</p>
+
+    </div>
+
+    <div class="card"
+         onclick="seminarFunction('Dr. Priya','Cyber Security Specialist')">
+
+        <h2>Dr. Priya</h2>
+
+        <p>Cyber Security</p>
+
+    </div>
+
+    <div class="card"
+         onclick="seminarFunction('Mr. Arun','Cloud Computing Engineer')">
+
+        <h2>Mr. Arun</h2>
+
+        <p>Cloud Computing</p>
+
+    </div>
+
+</div>
+
+<!-- Schedule -->
+
+<h2 align="center">
+    Seminar Schedule
+</h2>
+
+<table>
+
+<tr>
+
+    <th>Time</th>
+
+    <th>Topic</th>
+
+    <th>Speaker</th>
+
+</tr>
+
+<tr>
+
+    <td>10:00 AM</td>
+
+    <td>AI Trends</td>
+
+    <td>Dr. Ravi</td>
+
+</tr>
+
+<tr>
+
+    <td>12:00 PM</td>
+
+    <td>Cyber Security</td>
+
+    <td>Dr. Priya</td>
+
+</tr>
+
+<tr>
+
+    <td>2:00 PM</td>
+
+    <td>Cloud Computing</td>
+
+    <td>Mr. Arun</td>
+
+</tr>
+
+</table>
+
+<button class="btn">
+    Register Now
+</button>
+
+<!-- Modal -->
+
+<div class="modal"
+     id="modal">
+
+    <div class="modal-content">
+
+        <span class="close"
+              onclick="seminarFunction('close')">
+
+            ×
+
+        </span>
+
+        <h2 id="speakerName"></h2>
+
+        <p id="speakerInfo"></p>
+
+    </div>
+
+</div>
+
+<script>
+
+function seminarFunction(name, info){
+
+    if(name == "close"){
+
+        document.getElementById("modal")
+                .style.display = "none";
+    }
+    else{
+
+        document.getElementById("speakerName")
+                .innerHTML = name;
+
+        document.getElementById("speakerInfo")
+                .innerHTML = info;
+
+        document.getElementById("modal")
+                .style.display = "block";
+    }
+}
+
+</script>
+
+</body>
+</html>
+
+Question 20
+Design a News Portal Layout with:
+• navigation bar
+• featured article
+• trending section
+• multiple article cards.
+JavaScript should implement category filtering (Sports, Technology, Politics) without reloading the
+page.
+
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>News Portal</title>
+
+    <style>
+
+        body{
+            font-family:Arial;
+            margin:0;
+            background:#f2f2f2;
+        }
+
+        /* Navbar */
+
+        nav{
+
+            background:#222;
+
+            color:white;
+
+            display:flex;
+
+            justify-content:center;
+
+            gap:20px;
+
+            padding:15px;
+        }
+
+        nav button{
+
+            padding:10px 15px;
+
+            border:none;
+
+            cursor:pointer;
+        }
+
+        /* Featured */
+
+        .featured{
+
+            background:white;
+
+            margin:20px;
+
+            padding:20px;
+
+            border-radius:10px;
+        }
+
+        /* Trending */
+
+        .trending{
+
+            background:#fff4cc;
+
+            margin:20px;
+
+            padding:15px;
+
+            border-radius:10px;
+        }
+
+        /* Articles */
+
+        .articles{
+
+            display:flex;
+
+            flex-wrap:wrap;
+
+            gap:20px;
+
+            justify-content:center;
+
+            padding:20px;
+        }
+
+        .card{
+
+            width:280px;
+
+            background:white;
+
+            padding:15px;
+
+            border-radius:10px;
+
+            box-shadow:0 0 10px gray;
+        }
+
+        .card h3{
+            margin-top:0;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<!-- Navbar -->
+
+<nav>
+
+    <button onclick="newsFunction('All')">
+        All
+    </button>
+
+    <button onclick="newsFunction('Sports')">
+        Sports
+    </button>
+
+    <button onclick="newsFunction('Technology')">
+        Technology
+    </button>
+
+    <button onclick="newsFunction('Politics')">
+        Politics
+    </button>
+
+</nav>
+
+<!-- Featured -->
+
+<div class="featured">
+
+    <h1>
+        Featured Article
+    </h1>
+
+    <p>
+        AI is transforming industries worldwide with advanced technologies.
+    </p>
+
+</div>
+
+<!-- Trending -->
+
+<div class="trending">
+
+    <h2>
+        Trending News
+    </h2>
+
+    <p>
+        Global Tech Conference 2025 attracts innovators worldwide.
+    </p>
+
+</div>
+
+<!-- Articles -->
+
+<div class="articles"
+     id="articleContainer">
+
+</div>
+
+<script>
+
+let articles = [
+
+    {
+        title:"Football Championship",
+        category:"Sports"
+    },
+
+    {
+        title:"New AI Technology",
+        category:"Technology"
+    },
+
+    {
+        title:"Election Updates",
+        category:"Politics"
+    },
+
+    {
+        title:"Olympic Games",
+        category:"Sports"
+    },
+
+    {
+        title:"Cyber Security Trends",
+        category:"Technology"
+    }
+];
+
+function newsFunction(category){
+
+    let data = "";
+
+    for(let i=0;i<articles.length;i++){
+
+        if(category == "All"
+            || articles[i].category == category){
+
+            data +=
+            `<div class="card">
+
+                <h3>${articles[i].title}</h3>
+
+                <p>
+                    Category :
+                    ${articles[i].category}
+                </p>
+
+            </div>`;
+        }
+    }
+
+    document.getElementById("articleContainer")
+            .innerHTML = data;
+}
+
+// Initial Load
+newsFunction('All');
+
+</script>
+
+</body>
+</html>
+
+Question 21
+Create a Two-Column Signup Page.
+Left side: image banner
+Right side: signup form with fields:
+• name
+• email
+• password
+• confirm password
+• phone number
+JavaScript validation rules:
+• email format check
+• password strength indicator
+• phone number must contain exactly 10 digits.
+Display validation messages dynamically.
+
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Signup Page</title>
+
+    <style>
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+        }
+
+        body{
+            font-family:Arial;
+            background:#f2f2f2;
+        }
+
+        .container{
+
+            display:flex;
+
+            height:100vh;
+        }
+
+        /* LEFT SIDE */
+
+        .left{
+
+            flex:1;
+
+            background:url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f')
+            center/cover;
+        }
+
+        /* RIGHT SIDE */
+
+        .right{
+
+            flex:1;
+
+            background:white;
+
+            display:flex;
+
+            justify-content:center;
+
+            align-items:center;
+        }
+
+        .form-box{
+
+            width:400px;
+        }
+
+        h2{
+
+            text-align:center;
+
+            margin-bottom:20px;
+        }
+
+        input{
+
+            width:100%;
+
+            padding:12px;
+
+            margin-top:10px;
+
+            border:1px solid gray;
+
+            border-radius:5px;
+        }
+
+        button{
+
+            width:100%;
+
+            padding:12px;
+
+            margin-top:15px;
+
+            background:#007bff;
+
+            color:white;
+
+            border:none;
+
+            cursor:pointer;
+
+            border-radius:5px;
+        }
+
+        button:hover{
+
+            background:#0056b3;
+        }
+
+        .message{
+
+            font-size:14px;
+
+            margin-top:5px;
+        }
+
+        .red{
+            color:red;
+        }
+
+        .green{
+            color:green;
+        }
+
+        /* Responsive */
+
+        @media(max-width:768px){
+
+            .container{
+
+                flex-direction:column;
+            }
+
+            .left{
+
+                height:250px;
+            }
+
+            .right{
+
+                padding:20px;
+            }
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- LEFT IMAGE -->
+
+    <div class="left"></div>
+
+    <!-- RIGHT FORM -->
+
+    <div class="right">
+
+        <div class="form-box">
+
+            <h2>
+                Signup Form
+            </h2>
+
+            <form onkeyup="signupFunction()">
+
+                <input type="text"
+                       id="name"
+                       placeholder="Enter Name">
+
+                <input type="text"
+                       id="email"
+                       placeholder="Enter Email">
+
+                <div id="emailMsg"
+                     class="message"></div>
+
+                <input type="password"
+                       id="password"
+                       placeholder="Enter Password">
+
+                <div id="passwordMsg"
+                     class="message"></div>
+
+                <input type="password"
+                       id="confirm"
+                       placeholder="Confirm Password">
+
+                <div id="confirmMsg"
+                     class="message"></div>
+
+                <input type="text"
+                       id="phone"
+                       placeholder="Enter Phone Number">
+
+                <div id="phoneMsg"
+                     class="message"></div>
+
+                <button type="button">
+                    Signup
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+function signupFunction(){
+
+    let email =
+        document.getElementById("email").value;
+
+    let password =
+        document.getElementById("password").value;
+
+    let confirm =
+        document.getElementById("confirm").value;
+
+    let phone =
+        document.getElementById("phone").value;
+
+    // EMAIL VALIDATION
+
+    let emailPattern =
+        /^[^ ]+@[^ ]+\.[a-z]{2,3}$/;
+
+    if(email.match(emailPattern)){
+
+        document.getElementById("emailMsg")
+                .innerHTML = "Valid Email";
+
+        document.getElementById("emailMsg")
+                .className = "message green";
+    }
+    else{
+
+        document.getElementById("emailMsg")
+                .innerHTML = "Invalid Email";
+
+        document.getElementById("emailMsg")
+                .className = "message red";
+    }
+
+    // PASSWORD STRENGTH
+
+    if(password.length < 6){
+
+        document.getElementById("passwordMsg")
+                .innerHTML = "Weak Password";
+
+        document.getElementById("passwordMsg")
+                .className = "message red";
+    }
+
+    else if(password.match(/[A-Z]/)
+            && password.match(/[0-9]/)
+            && password.match(/[a-z]/)){
+
+        document.getElementById("passwordMsg")
+                .innerHTML = "Strong Password";
+
+        document.getElementById("passwordMsg")
+                .className = "message green";
+    }
+    else{
+
+        document.getElementById("passwordMsg")
+                .innerHTML = "Medium Password";
+
+        document.getElementById("passwordMsg")
+                .className = "message red";
+    }
+
+    // CONFIRM PASSWORD
+
+    if(confirm == password
+        && confirm != ""){
+
+        document.getElementById("confirmMsg")
+                .innerHTML = "Passwords Match";
+
+        document.getElementById("confirmMsg")
+                .className = "message green";
+    }
+    else{
+
+        document.getElementById("confirmMsg")
+                .innerHTML = "Passwords Do Not Match";
+
+        document.getElementById("confirmMsg")
+                .className = "message red";
+    }
+
+    // PHONE VALIDATION
+
+    let phonePattern =
+        /^[0-9]{10}$/;
+
+    if(phone.match(phonePattern)){
+
+        document.getElementById("phoneMsg")
+                .innerHTML = "Valid Phone Number";
+
+        document.getElementById("phoneMsg")
+                .className = "message green";
+    }
+    else{
+
+        document.getElementById("phoneMsg")
+                .innerHTML =
+                "Phone Number Must Contain Exactly 10 Digits";
+
+        document.getElementById("phoneMsg")
+                .className = "message red";
+    }
+}
+
+</script>
+
+</body>
+</html>
+
